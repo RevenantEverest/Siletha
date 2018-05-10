@@ -6,6 +6,7 @@ public class UserStats : MonoBehaviour {
 
     public string characterName;
     public int level;
+    public string userClass;
 
     public float currentHealth;
     public float maxHealth;
