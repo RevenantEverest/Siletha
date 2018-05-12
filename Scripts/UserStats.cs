@@ -49,6 +49,19 @@ public class UserStats : MonoBehaviour {
     public bool behindEnemy;
     public bool canAttack;
 
+    //Auto Attack
+    public float autoAttackCooldown;
+    public float autoAttackCurrentTime;
+    public bool canAutoAttack;
+
+    //Deselect Enemy
+    public float doubleClickTimer;
+    public bool didDoubleClick;
+
+    //Line of Sight
+    public LayerMask RaycastLayers;
+    public bool inLineOfSight;
+
     //KeyCodes
     public KeyCode attack;
 
@@ -56,10 +69,23 @@ public class UserStats : MonoBehaviour {
 
 	}
 
+  void OnGUI() {
+
+    //TODO: Display tooltip on hover
+    //TODO: Inventory UI
+    //TODO: Inventory item image hover on drag
+
+  }
+
 	void Update () {
     if(Input.GetMouseButtonDown(0)) {
 
-      SelectTarget();
+      SelectTarget(0);
+    }
+
+    if(Input.GetMouseButtonDown(1)) {
+
+      SelectTarget(1);
     }
 
     if(selectedUnit != null) {
@@ -82,6 +108,7 @@ public class UserStats : MonoBehaviour {
       if(angle > 60.0) {
 
         canAttack = false;
+        autoAttackCurrentTime = 0;
       }else {
 
         if(distance < 60) {
@@ -90,24 +117,59 @@ public class UserStats : MonoBehaviour {
         }else {
 
           canAttack = false;
+          autoAttackCurrentTime = 0;
         }
       }
 
-    }
+      //Line of Sight
+      RaycastHit hit;
+      if(Physics.Linecast(selectedUnit.transform.position, transform.position, out hit, RaycastLayers)) {
 
-    if(Input.GetKeyDown(attack)) {
+        print("Enemy is not in line of sight");
+        inLineOfSight = false;
+      }else {
 
-      if(selectedUnit != null && canAttack) {
+        inLineOfSight = true;
+      }
 
-        BasicAttack();
+      //Double click detect
+      if(doubleClickTimer > 0) {
+
+        doubleClickTimer -= Time.deltaTime;
+      }else {
+
+        didDoubleClick = false;
       }
     }
-    
+
+    //Auto Attack
+    if(selectedUnit != null && canAttack && canAutoAttack == true) {
+
+      if(autoAttackCurrentTime < autoAttackCooldown) {
+
+        autoAttackCurrentTime += Time.deltaTime;
+      }else {
+
+        BasicAttack();
+        autoAttackCurrentTime = 0;
+      }
+    }
+
+    //Attacks
+    if(Input.GetKeyDown(attack)) {
+
+      if(selectedUnit != null && canAttack && inLineOfSight) {
+
+        BasicAttack();
+        canAutoAttack = true;
+      }
+    }
+
     //TODO: Ranged Spell Attack
 
 	}
 
-  void SelectTarget() {
+  void SelectTarget(int selectedNum) {
 
     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
     RaycastHit hit;
@@ -118,6 +180,31 @@ public class UserStats : MonoBehaviour {
         selectedUnit = hit.transform.gameObject;
 
         enemyStatsScript = selectedUnit.transform.gameObject.transform.GetComponent<EnemyStats>();
+
+        if(selectedNum == 0 && selectedUnit == null) {
+
+          canAutoAttack = false;
+        }else if(selectedNum == 1) {
+
+          canAutoAttack = true;
+        }
+      }else {
+
+        if(selectedUnit != null) {
+
+          if(didDoubleClick == false) {
+
+            didDoubleClick = true;
+            doubleClickTimer = 0.3f;
+          }else {
+
+            print("Deselect");
+            selectedUnit = null;
+            didDoubleClick = false;
+            doubleClickTimer = 0;
+            autoAttackCurrentTime = 0;
+          }
+        }
       }
     }
   }
