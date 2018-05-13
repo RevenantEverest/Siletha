@@ -32,6 +32,7 @@ public class UserMovement : MonoBehaviour
 
     void Update()
     {
+
         //force controller down slope. Disable jumping
         if (myAng > 50)
         {

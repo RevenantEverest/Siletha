@@ -50,6 +50,7 @@ public class UserCamera : MonoBehaviour
 
         if (lockToRearOfTarget)
             rotateBehind = true;
+
     }
 
     void Update()
@@ -81,7 +82,6 @@ public class UserCamera : MonoBehaviour
     //Only Move camera after everything else has been updated
     void LateUpdate()
     {
-
         // Don't do anything if target is not defined
         if (!target)
             return;
